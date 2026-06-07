@@ -17,7 +17,7 @@ import urllib.request
 from pathlib import Path
 
 API_URL = "https://build.betaflight.com/api/app/devices"
-OUT = Path(__file__).resolve().parent.parent / "main" / "vcp_ids.generated.h"
+OUT = Path(__file__).resolve().parent.parent / "src" / "main" / "vcp_ids.generated.h"
 
 
 def fetch(url):
