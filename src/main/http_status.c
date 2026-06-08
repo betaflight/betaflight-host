@@ -51,6 +51,7 @@ static const char PAGE[] =
     "<tr><td class=\"k\">Gateway</td><td id=\"gw\">…</td></tr>"
     "<tr><td class=\"k\">Netmask</td><td id=\"mask\">…</td></tr>"
     "<tr><td class=\"k\">Access point</td><td id=\"ap\">…</td></tr>"
+    "<tr><td class=\"k\">Board</td><td id=\"board\">…</td></tr>"
     "<tr><td class=\"k\">Firmware slot</td><td id=\"slot\">…</td></tr>"
     "</table>"
     "<h2>Join a WiFi network</h2>"
@@ -86,6 +87,7 @@ static const char PAGE[] =
     "$('gw').innerHTML=w.gw?'<code>'+w.gw+'</code>':'<span class=\\\"down\\\">—</span>';"
     "$('mask').innerHTML=w.netmask?'<code>'+w.netmask+'</code>':'<span class=\\\"down\\\">—</span>';"
     "$('ap').innerHTML=w.ap?'<span class=\\\"warn\\\">broadcasting (setup mode)</span>':'<span class=\\\"down\\\">off</span>';"
+    "$('board').innerHTML='<code>'+s.ota.board+'</code>';"
     "$('slot').innerHTML='<code>'+s.ota.slot+'</code> '+(s.ota.valid?'<span class=\\\"up\\\">valid</span>':'<span class=\\\"warn\\\">pending verify</span>');"
     "}).catch(function(){})}"
     "function scan(){var s=$('ssid');s.innerHTML='<option>— scanning… —</option>';"
@@ -182,12 +184,12 @@ static esp_err_t status_get(httpd_req_t *req)
         "\"tcp\":{\"up\":%s,\"port\":%d},"
         "\"wifi\":{\"state\":\"%s\",\"ap\":%s,\"ssid\":\"%s\","
         "\"ip\":\"%s\",\"gw\":\"%s\",\"netmask\":\"%s\"},"
-        "\"ota\":{\"slot\":\"%s\",\"valid\":%s}}",
+        "\"ota\":{\"board\":\"%s\",\"slot\":\"%s\",\"valid\":%s}}",
         usb ? "true" : "false", vid, pid,
         tcp ? "true" : "false", TCP_SERVER_PORT,
         state, w.ap_active ? "true" : "false", ssid_esc,
         w.ip, w.gw, w.netmask,
-        slot, img_valid ? "true" : "false");
+        ota_board_id(), slot, img_valid ? "true" : "false");
 
     httpd_resp_set_type(req, "application/json");
     return httpd_resp_send(req, body, n);

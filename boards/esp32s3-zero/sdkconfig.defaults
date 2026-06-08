@@ -1,0 +1,10 @@
+# ESP32-S3-ZERO (Waveshare): 4 MB flash, no PSRAM, single USB-C wired to the
+# native USB (GPIO19/20) — shared between flashing/console and USB-host.
+CONFIG_ESPTOOLPY_FLASHSIZE_4MB=y
+CONFIG_ESPTOOLPY_FLASHSIZE="4MB"
+CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="boards/esp32s3-zero/partitions.csv"
+
+# Board identity, baked into the app descriptor (esp_app_desc.version) and
+# checked on OTA so an image built for another board is rejected.
+CONFIG_APP_PROJECT_VER_FROM_CONFIG=y
+CONFIG_APP_PROJECT_VER="esp32s3-zero"

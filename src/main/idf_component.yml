@@ -3,5 +3,7 @@
 dependencies:
   # USB Host CDC-ACM class driver — drives the FC's Virtual COM Port.
   espressif/usb_host_cdc_acm: "^2.0.0"
+  # WS2812 NeoPixel driver (RMT backend) for the status LED.
+  espressif/led_strip: "^2.5.0"
   idf:
     version: ">=5.0"

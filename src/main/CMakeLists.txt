@@ -7,8 +7,10 @@ idf_component_register(
         "bridge.c"
         "http_status.c"
         "ota.c"
+        "leds.c"
     INCLUDE_DIRS
         "."
+        "${CMAKE_SOURCE_DIR}/boards/${BOARD}"   # board.h for the selected board
     REQUIRES
         esp_wifi
         esp_netif
@@ -18,4 +20,6 @@ idf_component_register(
         lwip
         esp_http_server
         app_update
+        esp_app_format
+        esp_driver_gpio
 )

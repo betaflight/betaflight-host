@@ -1,0 +1,14 @@
+# Freenove ESP32-S3-WROOM (N8R8): 8 MB flash, 8 MB octal PSRAM, dual USB-C —
+# native USB (GPIO19/20) for the USB-host bridge plus a separate CP2102 UART
+# bridge, so the serial console stays available while bridging.
+CONFIG_ESPTOOLPY_FLASHSIZE_8MB=y
+CONFIG_ESPTOOLPY_FLASHSIZE="8MB"
+CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="boards/esp32s3-wroom-freenove/partitions.csv"
+
+# Octal SPI PSRAM (R8).
+CONFIG_SPIRAM=y
+CONFIG_SPIRAM_MODE_OCT=y
+
+# Board identity (see esp32s3-zero notes).
+CONFIG_APP_PROJECT_VER_FROM_CONFIG=y
+CONFIG_APP_PROJECT_VER="esp32s3-wroom-freenove"

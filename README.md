@@ -30,7 +30,24 @@ It is a transparent byte bridge — no MSP parsing happens on the ESP32.
 | `src/main/http_status.c` | Web UI on port 80: status + scan/join a network + firmware upload |
 | `src/main/ota.c` | `POST /update` OTA handler; streams an uploaded .bin into the spare slot |
 | `src/main/bridge.c` | Two stream buffers decoupling the USB and TCP contexts |
+| `boards/<board>/` | Per-board flash size, partition table, PSRAM and identity |
 | `esp-idf/` | Pinned ESP-IDF (git submodule, `release/v5.4`, shallow) |
+
+## Boards
+
+The board is selected at configure time with `-DBOARD=<name>`, where `<name>` is
+a directory under `boards/`. Each board provides its own `sdkconfig.defaults`
+(flash size, PSRAM, partition CSV) and `board.h`, layered on the shared
+top-level `sdkconfig.defaults`. The USB-host pins (D- GPIO19 / D+ GPIO20) are
+fixed on the ESP32-S3 and identical across boards.
+
+| BOARD | Hardware |
+|-------|----------|
+| `esp32s3-zero` (default) | Waveshare ESP32-S3-ZERO — 4 MB flash, no PSRAM, single USB-C (native, shared with USB-host) |
+| `esp32s3-wroom-freenove` | Freenove ESP32-S3-WROOM N8R8 — 8 MB flash, 8 MB octal PSRAM, dual USB-C (native + CH343 UART, so the console survives USB-host mode) |
+
+A board identity is baked into the firmware (`esp_app_desc.version`) and checked
+on OTA, so an image built for one board is refused on another (see below).
 
 ## Setup
 
@@ -50,9 +67,16 @@ git submodule update --init --depth 1 esp-idf
 
 ```sh
 idf.py set-target esp32s3
-idf.py build
+
+# Build for a board (default is esp32s3-zero). When switching boards, delete
+# ./sdkconfig first so it regenerates from that board's defaults.
+idf.py -DBOARD=esp32s3-wroom-freenove build
 idf.py -p /dev/ttyACM0 flash monitor
 ```
+
+On the dual-USB Freenove, flash/monitor over the CH343 UART port — it stays
+connected even after the firmware switches the native USB into host mode. On the
+single-port ZERO the console drops once host mode engages.
 
 ## Connecting
 
@@ -87,6 +111,12 @@ The layout is dual-OTA (`ota_0`/`ota_1`) with rollback enabled: a freshly
 uploaded image boots in *pending-verify* state and only sticks once it comes up
 healthy (`ota_mark_valid()` in `main.c`). A bad image that fails to boot is
 rolled back to the previous slot automatically.
+
+Both boards are `esp32s3`, so the image validator can't catch a wrong-*board*
+upload (different partition layout). The board id baked into each image is
+therefore checked on upload: an image for another board is rejected with a 400
+and the boot partition is left untouched. The running board and slot are shown
+on the status page.
 
 > The dual-OTA partition table only takes effect from a **serial** flash, so the
 > initial `idf.py flash` below is the last one that needs the cable.

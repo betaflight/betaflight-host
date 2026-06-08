@@ -6,12 +6,27 @@
 #include "freertos/task.h"
 #include "esp_ota_ops.h"
 #include "esp_partition.h"
+#include "esp_app_desc.h"
 #include "esp_system.h"
 #include "esp_log.h"
 
 static const char *TAG = "ota";
 
 #define OTA_BUF_SIZE  1024
+
+const char *ota_board_id(void)
+{
+    return esp_app_get_description()->version;
+}
+
+// The board identity is carried in the app version, optionally followed by
+// "+<ver>". Two images are for the same board if the part before '+' matches.
+static bool same_board(const char *a, const char *b)
+{
+    size_t la = strcspn(a, "+");
+    size_t lb = strcspn(b, "+");
+    return la == lb && strncmp(a, b, la) == 0;
+}
 
 static esp_err_t fail(httpd_req_t *req, esp_ota_handle_t handle, const char *why)
 {
@@ -57,6 +72,23 @@ static esp_err_t update_post(httpd_req_t *req)
     if (esp_ota_end(handle) != ESP_OK) {
         return fail(req, 0, "image validation failed");
     }
+
+    // Both boards are esp32s3, so esp_ota_end can't catch a wrong-board image
+    // (mismatched partition layout). Compare the board id baked into the image
+    // and refuse to boot it if it doesn't match this device.
+    esp_app_desc_t incoming;
+    if (esp_ota_get_partition_description(target, &incoming) != ESP_OK) {
+        return fail(req, 0, "cannot read image descriptor");
+    }
+    if (!same_board(ota_board_id(), incoming.version)) {
+        char msg[112];
+        snprintf(msg, sizeof(msg), "image is for '%s' but this device is '%s'",
+                 incoming.version, ota_board_id());
+        ESP_LOGE(TAG, "rejecting update: %s", msg);
+        httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, msg);
+        return ESP_FAIL;   // leave boot partition untouched; written slot is inert
+    }
+
     if (esp_ota_set_boot_partition(target) != ESP_OK) {
         return fail(req, 0, "set boot partition failed");
     }

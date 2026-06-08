@@ -13,6 +13,16 @@
 static StreamBufferHandle_t s_usb_to_net;  // FC  -> Configurator
 static StreamBufferHandle_t s_net_to_usb;  // Configurator -> FC
 
+// Total bytes moved to/from the FC in either direction. Monotonic; sampled by
+// the LED indicator to detect traffic. Plain increments are fine — a missed
+// update only costs one LED tick.
+static volatile uint32_t s_fc_activity;
+
+uint32_t bridge_fc_activity(void)
+{
+    return s_fc_activity;
+}
+
 void bridge_init(void)
 {
     s_usb_to_net = xStreamBufferCreate(BRIDGE_BUF_SIZE, BRIDGE_TRIGGER);
@@ -25,7 +35,9 @@ size_t bridge_usb_to_net_push(const uint8_t *data, size_t len)
 {
     // Zero timeout: never block the USB driver callback. Dropped bytes here are
     // visible as a stalled/overflowing TCP client rather than a wedged FC link.
-    return xStreamBufferSend(s_usb_to_net, data, len, 0);
+    size_t sent = xStreamBufferSend(s_usb_to_net, data, len, 0);
+    s_fc_activity += sent;
+    return sent;
 }
 
 size_t bridge_usb_to_net_pop(uint8_t *out, size_t max_len, uint32_t timeout_ms)
@@ -35,7 +47,9 @@ size_t bridge_usb_to_net_pop(uint8_t *out, size_t max_len, uint32_t timeout_ms)
 
 size_t bridge_net_to_usb_push(const uint8_t *data, size_t len)
 {
-    return xStreamBufferSend(s_net_to_usb, data, len, 0);
+    size_t sent = xStreamBufferSend(s_net_to_usb, data, len, 0);
+    s_fc_activity += sent;
+    return sent;
 }
 
 size_t bridge_net_to_usb_pop(uint8_t *out, size_t max_len, uint32_t timeout_ms)

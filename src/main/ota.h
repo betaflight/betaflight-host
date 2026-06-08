@@ -16,3 +16,7 @@ void ota_mark_valid(void);
 // Report the running partition label (e.g. "ota_0") and whether the image is
 // confirmed valid (i.e. not still pending rollback verification).
 void ota_running_info(char *label, size_t label_len, bool *valid);
+
+// Board identity of the running image (from esp_app_desc.version), e.g.
+// "esp32s3-zero". An uploaded image whose board id differs is rejected.
+const char *ota_board_id(void);

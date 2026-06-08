@@ -30,3 +30,7 @@ size_t bridge_net_to_usb_pop(uint8_t *out, size_t max_len, uint32_t timeout_ms);
 // Discard any buffered data in both directions. Called when a client connects or
 // disconnects so a new session starts clean (avoids replaying stale MSP bytes).
 void bridge_reset(void);
+
+// Monotonic count of bytes moved to/from the FC (either direction). Sample it
+// to drive an activity indicator: a change since the last sample means traffic.
+uint32_t bridge_fc_activity(void);

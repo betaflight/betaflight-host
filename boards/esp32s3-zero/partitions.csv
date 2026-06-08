@@ -1,5 +1,4 @@
-# Custom partition table: dual-OTA so firmware can be updated over WiFi (no
-# serial cable). Two ~1.875 MB app slots + otadata, fits the S3-ZERO's 4 MB.
+# ESP32-S3-ZERO: 4 MB dual-OTA (~1.875 MB slots).
 # Name,    Type, SubType, Offset,   Size
 nvs,       data, nvs,     0x9000,   0x6000
 otadata,   data, ota,     0xf000,   0x2000
