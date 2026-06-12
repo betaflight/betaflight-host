@@ -326,6 +326,16 @@ void wifi_sta_status(wifi_status_t *out)
     strlcpy(out->gw, s_sta_gw, sizeof(out->gw));
     strlcpy(out->netmask, s_sta_netmask, sizeof(out->netmask));
     unlock();
+
+    // Live signal strength of the associated AP. Queried outside the lock; only
+    // valid while connected, otherwise reported as 0.
+    out->rssi = 0;
+    if (out->state == WIFI_STA_CONNECTED) {
+        wifi_ap_record_t ap;
+        if (esp_wifi_sta_get_ap_info(&ap) == ESP_OK) {
+            out->rssi = ap.rssi;
+        }
+    }
 }
 
 int wifi_scan(wifi_scan_ap_t *out, int max)

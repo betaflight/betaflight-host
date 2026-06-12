@@ -43,6 +43,7 @@ typedef struct {
     char ip[16];          // assigned IPv4 ("" unless connected)
     char gw[16];          // gateway ("" unless connected)
     char netmask[16];     // netmask ("" unless connected)
+    int8_t rssi;          // connected AP signal in dBm (0 unless connected)
 } wifi_status_t;
 
 // One visible access point from a scan.
